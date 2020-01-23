@@ -1,6 +1,5 @@
 #!/usr/bin/php
 <?php
-// require_once __DIR__.'/config.php';
 
 $opts = getopt('u:p:h:', ['file:','create_table::','dry_run::','help']);
 
