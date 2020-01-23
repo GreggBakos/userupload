@@ -3,7 +3,7 @@ This is a PHP script, that is executed from the command line, which accepts a CS
 # Setup
 Clone the repo
 No further action is required
-# From the comgmand line
+# From the command line
 View the file directives
 ```
 php ./user_upload.php --help
