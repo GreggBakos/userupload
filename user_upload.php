@@ -3,7 +3,11 @@
 
 $opts = getopt('u:p:h:', ['file:','create_table::','dry_run::','help']);
 
-//check for --file directive and it's value, if --create_table directive is not set
+//output the help directive and exit
+if (isset($opts['help']))
+  usage('help', 'File directives');
+
+  //check for --file directive and it's value, if --create_table directive is not set
 if ((!isset($opts['file']) && !isset($opts['create_table'])) || (isset($opts['file']) && !isset($opts['create_table']) && empty($opts['file'])))
   usage('File', 'file is required');
 
@@ -11,10 +15,6 @@ if ((!isset($opts['file']) && !isset($opts['create_table'])) || (isset($opts['fi
 if ((!isset($opts['u']) || !isset($opts['p']) || !isset($opts['h'])) || (empty($opts['u']) || empty($opts['p']) || empty($opts['h'])))
   usage('Database directives', 'Database directives are required');
   
-//output the help directive and exit
-if (isset($opts['help']))
-  usage('help', 'File directives');
-
 //run the process
 processCSV($opts);
 
@@ -31,12 +31,12 @@ function processCSV($opts){
   require_once __DIR__.'/config.php';
 
   $file = __DIR__ ."/".$opts['file'];
+
   //does the csv file contain a header row
   $createTable = isset($opts['create_table']);
   $dryRun = isset($opts['dry_run']);
   $dbUser = $opts['u'];
   $dbPass = $opts['p'];
-  $dbPass = "";
   $dbHost = $opts['h'] ?? 'localhost';
   
   //connect to the database
@@ -52,10 +52,12 @@ function processCSV($opts){
         $connection = mysqli_connect($dbHost, $dbUser, $dbPass);
         echo "creating database " . $dbName . PHP_EOL;
         $sql = "CREATE DATABASE $dbName;";
+
         if (!mysqli_query($connection,$sql)){
           printf("Error message: %s\n", mysqli_error($connection));
           exit;  
         }
+
         $sql = "USE $dbName;";
         if (!mysqli_query($connection,$sql)){
           printf("Error message: %s\n", mysqli_error($connection));
@@ -91,11 +93,14 @@ function processCSV($opts){
       while (($data = fgetcsv($h, 1000, ",")) !== FALSE) {		
         
         //set and clean name, surname, email
-        $name = mysqli_real_escape_string($connection, ucfirst(strtolower(trim($data[0]))));;
-        $surname = mysqli_real_escape_string($connection, ucfirst(strtolower(trim($data[1]))));;
-        $email = mysqli_real_escape_string($connection, strtolower(trim($data[2])));;
+        $name     = mysqli_real_escape_string($connection, ucfirst(strtolower(trim($data[0]))));;
+        $surname  = mysqli_real_escape_string($connection, ucfirst(strtolower(trim($data[1]))));;
+        $email    = strtolower(trim($data[2]));
+
         //validate the email address and insert
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+          //escape email address
+          $email = mysqli_real_escape_string($connection, strtolower(trim($data[2])));;
           
           $sql = "insert into $dbTable (`name`, `surname`, `email`) values ('$name', '$surname', '$email')";
 
